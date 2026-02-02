@@ -113,4 +113,5 @@ spring-boot = { id = "org.springframework.boot", version.ref = "spring-boot" }
 spring-dependency-management = { id = "io.spring.dependency-management", version.ref = "spring-dependency-management" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-spring = { id = "org.jetbrains.kotlin.plugin.spring", version.ref = "kotlin" }
+avro-gradle = { id = "com.github.davidmc24.gradle.plugin.avro", version = "1.9.1" }
 jib = { id = "com.google.cloud.tools.jib", version.ref = "jib" }
