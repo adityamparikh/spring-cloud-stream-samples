@@ -48,7 +48,7 @@ public class KafkaStreamsWordCountApplication {
 					.flatMapValues(value -> Arrays.asList(value.toLowerCase().split("\\W+")))
 					.map((key, value) -> new KeyValue<>(value, value))
 					.groupByKey(Grouped.with(Serdes.String(), Serdes.String()))
-					.windowedBy(TimeWindows.of(Duration.ofSeconds(60)))
+					.windowedBy(TimeWindows.ofSizeWithNoGrace(Duration.ofSeconds(60)))
 					.count(Materialized.as("WordCounts-1"))
 					.toStream()
 					.map((key, value) -> new KeyValue<>(null,

@@ -81,9 +81,10 @@ public class KafkaStreamsInventoryCountTests extends AbstractInventoryCountTests
          */
         context = new SpringApplicationBuilder(KafkaStreamsInventoryCountApplication.class)
                 .properties(
+                        "server.port=0",
                         "spring.cloud.stream.kafka.streams.binder.brokers=" + embeddedKafka.getBrokersAsString(),
                         "spring.cloud.stream.kafka.streams.binder.configuration.commit.interval.ms=1000",
-                        "spring.cloud.stream.kafka.streams.binder.configuration.cache.max.bytes.buffering=0")
+                        "spring.cloud.stream.kafka.streams.binder.configuration.statestore.cache.max.bytes=0")
                 .run();
     }
 

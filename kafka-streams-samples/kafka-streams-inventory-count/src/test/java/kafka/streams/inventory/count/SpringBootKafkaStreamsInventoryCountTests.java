@@ -55,9 +55,10 @@ import org.springframework.test.annotation.DirtiesContext;
  * More messages are produced on the output topic.
  */
 @SpringBootTest(
+        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         properties = {
                 "spring.cloud.stream.kafka.streams.binder.configuration.commit.interval.ms=1000",
-                "spring.cloud.stream.kafka.streams.binder.configuration.cache.max.bytes.buffering=0"
+                "spring.cloud.stream.kafka.streams.binder.configuration.statestore.cache.max.bytes=0"
         })
 @DirtiesContext
 public class SpringBootKafkaStreamsInventoryCountTests extends AbstractInventoryCountTests {

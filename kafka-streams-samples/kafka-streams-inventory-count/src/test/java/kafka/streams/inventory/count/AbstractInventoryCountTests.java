@@ -15,6 +15,7 @@
  */
 package kafka.streams.inventory.count;
 
+import java.time.Duration;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -134,7 +135,7 @@ public abstract class AbstractInventoryCountTests {
         Map<ProductKey, InventoryCountEvent> inventoryCountEvents = new LinkedHashMap<>();
         int receivedCount = 0;
         while (receivedCount < expectedCount) {
-            ConsumerRecords<ProductKey, InventoryCountEvent> records = KafkaTestUtils.getRecords(consumer, 1000);
+            ConsumerRecords<ProductKey, InventoryCountEvent> records = KafkaTestUtils.getRecords(consumer, Duration.ofMillis(1000));
             if (records.isEmpty()) {
                 logger.error("No more records received. Expected {} received {}.", expectedCount, receivedCount);
                 break;

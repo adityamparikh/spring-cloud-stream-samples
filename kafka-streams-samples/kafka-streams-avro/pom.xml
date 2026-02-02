@@ -3,10 +3,10 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
-		<groupId>org.springframework.boot</groupId>
-		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.4.4</version>
-		<relativePath/> <!-- lookup parent from repository -->
+		<groupId>io.spring.cloud.stream.sample</groupId>
+		<artifactId>kafka-streams-samples</artifactId>
+		<version>0.0.1-SNAPSHOT</version>
+		<relativePath>..</relativePath>
 	</parent>
 	<groupId>com.example</groupId>
 	<artifactId>kafka-streams-avro</artifactId>
@@ -14,9 +14,7 @@
 	<name>kafka-streams-avro</name>
 	<description>Demo project for Spring Boot</description>
 	<properties>
-		<java.version>8</java.version>
-		<spring-cloud.version>2020.0.2</spring-cloud.version>
-		<confluent.version>5.2.0</confluent.version>
+		<confluent.version>7.9.0</confluent.version>
 		<avro.version>1.11.3</avro.version>
 	</properties>
 	<dependencies>
@@ -31,7 +29,6 @@
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-stream-binder-kafka-streams</artifactId>
-			<version>3.1.3-SNAPSHOT</version>
 		</dependency>
 
 		<dependency>
@@ -46,10 +43,8 @@
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-stream</artifactId>
+			<artifactId>spring-cloud-stream-test-binder</artifactId>
 			<scope>test</scope>
-			<classifier>test-binder</classifier>
-			<type>test-jar</type>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.avro</groupId>
@@ -78,18 +73,6 @@
 			<version>${confluent.version}</version>
 		</dependency>
 	</dependencies>
-	<dependencyManagement>
-		<dependencies>
-			<dependency>
-				<groupId>org.springframework.cloud</groupId>
-				<artifactId>spring-cloud-dependencies</artifactId>
-				<version>${spring-cloud.version}</version>
-				<type>pom</type>
-				<scope>import</scope>
-			</dependency>
-		</dependencies>
-	</dependencyManagement>
-
 	<build>
 		<plugins>
 			<plugin>

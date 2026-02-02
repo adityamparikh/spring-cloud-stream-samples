@@ -57,7 +57,7 @@ public class KafkaStreamsProductTrackerApplication {
 					.filter((key, product) -> productIds().contains(product.getId()))
 					.map((key, value) -> new KeyValue<>(value, value))
 					.groupByKey(Grouped.with(new JsonSerde<>(Product.class), new JsonSerde<>(Product.class)))
-					.windowedBy(TimeWindows.of(Duration.ofSeconds(60)))
+					.windowedBy(TimeWindows.ofSizeWithNoGrace(Duration.ofSeconds(60)))
 					.count(Materialized.as("product-counts"))
 					.toStream()
 					.map((key, value) -> new KeyValue<>(key.key().id, new ProductStatus(key.key().id,

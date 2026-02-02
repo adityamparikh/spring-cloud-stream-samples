@@ -30,11 +30,11 @@ import org.mockito.ArgumentCaptor;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.actuate.autoconfigure.metrics.KafkaMetricsAutoConfiguration;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
-import org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration;
+import org.springframework.boot.kafka.autoconfigure.KafkaAutoConfiguration;
+import org.springframework.boot.kafka.autoconfigure.metrics.KafkaMetricsAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.test.mock.MockIntegration;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -66,7 +66,7 @@ class JdbcSinkTests {
 	@Autowired
 	private JdbcTemplate jdbcTemplate;
 
-	@SpyBean(name = "jdbcHandler")
+	@MockitoSpyBean(name = "jdbcHandler")
 	private MessageHandler jdbcMessageHandler;
 
 	@Test

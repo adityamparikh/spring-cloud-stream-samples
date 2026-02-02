@@ -16,6 +16,7 @@
 
 package kafka.streams.dlq.sample;
 
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.function.Function;
@@ -46,7 +47,7 @@ public class KafkaStreamsDlqSample {
 					.flatMapValues(value -> Arrays.asList(value.toLowerCase().split("\\W+")))
 					.map((key, value) -> new KeyValue<>(value, value))
 					.groupByKey(Grouped.with(Serdes.String(), Serdes.String()))
-					.windowedBy(TimeWindows.of(5000))
+					.windowedBy(TimeWindows.ofSizeWithNoGrace(Duration.ofMillis(5000)))
 					.count(Materialized.as("WordCounts-1"))
 					.toStream()
 					.map((key, value) -> new KeyValue<>(null,

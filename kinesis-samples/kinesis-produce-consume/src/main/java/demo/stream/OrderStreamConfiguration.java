@@ -22,13 +22,10 @@ import java.util.function.Consumer;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.stream.annotation.EnableBinding;
-import org.springframework.cloud.stream.annotation.StreamListener;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 import demo.repository.OrderRepository;
-import org.springframework.stereotype.Component;
 
 /**
  *
@@ -36,7 +33,7 @@ import org.springframework.stereotype.Component;
  * @author Artem Bilan
  *
  */
-@Component
+@Configuration
 public class OrderStreamConfiguration {
 
 	private final Log logger = LogFactory.getLog(getClass());

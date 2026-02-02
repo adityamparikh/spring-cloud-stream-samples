@@ -18,14 +18,8 @@ package multibinder;
 
 import java.util.UUID;
 
-import org.hamcrest.CoreMatchers;
-import org.hamcrest.Matchers;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,33 +31,41 @@ import org.springframework.cloud.stream.binder.kafka.KafkaMessageChannelBinder;
 import org.springframework.cloud.stream.binder.kafka.properties.KafkaBinderConfigurationProperties;
 import org.springframework.cloud.stream.binder.kafka.properties.KafkaConsumerProperties;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.kafka.test.rule.EmbeddedKafkaRule;
+import org.springframework.kafka.test.EmbeddedKafkaBroker;
+import org.springframework.kafka.test.EmbeddedKafkaKraftBroker;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 
-import static org.hamcrest.Matchers.arrayWithSize;
-import static org.hamcrest.Matchers.equalTo;
+import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest(
 		webEnvironment = SpringBootTest.WebEnvironment.NONE)
 @DirtiesContext
 public class TwoKafkaBindersApplicationTest {
 
-	@ClassRule
-	public static EmbeddedKafkaRule kafkaTestSupport1 = new EmbeddedKafkaRule(1, true, "input", "output");
+	private static final EmbeddedKafkaBroker kafkaTestSupport1;
+	private static final EmbeddedKafkaBroker kafkaTestSupport2;
 
-	@ClassRule
-	public static EmbeddedKafkaRule kafkaTestSupport2 = new EmbeddedKafkaRule(1, true, "input", "output");
+	static {
+		kafkaTestSupport1 = new EmbeddedKafkaKraftBroker(1, 1, "input", "output");
+		kafkaTestSupport1.afterPropertiesSet();
+		kafkaTestSupport2 = new EmbeddedKafkaKraftBroker(1, 1, "input", "output");
+		kafkaTestSupport2.afterPropertiesSet();
+	}
 
+	@DynamicPropertySource
+	static void kafkaProperties(DynamicPropertyRegistry registry) {
+		registry.add("kafkaBroker1", kafkaTestSupport1::getBrokersAsString);
+		registry.add("kafkaBroker2", kafkaTestSupport2::getBrokersAsString);
+	}
 
-
-	@BeforeClass
-	public static void setupEnvironment() {
-		System.setProperty("kafkaBroker1", kafkaTestSupport1.getEmbeddedKafka().getBrokersAsString());
-		System.setProperty("kafkaBroker2", kafkaTestSupport2.getEmbeddedKafka().getBrokersAsString());
+	@AfterAll
+	static void tearDown() {
+		kafkaTestSupport1.destroy();
+		kafkaTestSupport2.destroy();
 	}
 
 	@Autowired
@@ -76,16 +78,16 @@ public class TwoKafkaBindersApplicationTest {
 		DirectFieldAccessor directFieldAccessor1 = new DirectFieldAccessor(kafka1);
 		KafkaBinderConfigurationProperties configuration1 =
 				(KafkaBinderConfigurationProperties) directFieldAccessor1.getPropertyValue("configurationProperties");
-		Assert.assertThat(configuration1.getBrokers(), arrayWithSize(1));
-		Assert.assertThat(configuration1.getBrokers()[0], equalTo(kafkaTestSupport1.getEmbeddedKafka().getBrokersAsString()));
+		assertThat(configuration1.getBrokers()).hasSize(1);
+		assertThat(configuration1.getBrokers()[0]).isEqualTo(kafkaTestSupport1.getBrokersAsString());
 
 		Binder<MessageChannel, ?, ?> binder2 = binderFactory.getBinder("kafka2", MessageChannel.class);
 		KafkaMessageChannelBinder kafka2 = (KafkaMessageChannelBinder) binder2;
 		DirectFieldAccessor directFieldAccessor2 = new DirectFieldAccessor(kafka2);
 		KafkaBinderConfigurationProperties configuration2 =
 				(KafkaBinderConfigurationProperties) directFieldAccessor2.getPropertyValue("configurationProperties");
-		Assert.assertThat(configuration2.getBrokers(), arrayWithSize(1));
-		Assert.assertThat(configuration2.getBrokers()[0], equalTo(kafkaTestSupport2.getEmbeddedKafka().getBrokersAsString()));
+		assertThat(configuration2.getBrokers()).hasSize(1);
+		assertThat(configuration2.getBrokers()[0]).isEqualTo(kafkaTestSupport2.getBrokersAsString());
 	}
 
 	@Test
@@ -96,8 +98,8 @@ public class TwoKafkaBindersApplicationTest {
 
 		//receiving test message sent by the test producer in the application
 		Message<?> receive = dataConsumer.receive(60_000);
-		Assert.assertThat(receive, Matchers.notNullValue());
-		Assert.assertThat(receive.getPayload(), CoreMatchers.anyOf(equalTo("FOO".getBytes()), equalTo("BAR".getBytes())));
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isIn("FOO".getBytes(), "BAR".getBytes());
 	}
 
 }

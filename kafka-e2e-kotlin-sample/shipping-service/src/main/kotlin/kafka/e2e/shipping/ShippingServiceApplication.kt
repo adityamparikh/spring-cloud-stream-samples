@@ -16,15 +16,12 @@
 
 package kafka.e2e.shipping
 
-import kafka.e2e.shipping.stream.ShippingKStreamProcessor
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
-import org.springframework.cloud.stream.annotation.EnableBinding
 
 /**
- * @author José A. Íñigo
+ * @author Jose A. Inigo
  */
-@EnableBinding(ShippingKStreamProcessor::class)
 @SpringBootApplication
 class ShippingServiceApplication
 
