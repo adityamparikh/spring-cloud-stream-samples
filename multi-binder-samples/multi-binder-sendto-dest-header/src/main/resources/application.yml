@@ -1,5 +1,7 @@
 spring:
   cloud:
+    function:
+      definition: sendTestData;process;receive
     stream:
       default-binder: kafka2
       bindings:
@@ -14,8 +16,6 @@ spring:
         receive-in-0:
           destination: dataOut
           binder: kafka2
-      function:
-        definition: sendTestData;process;receive
       binders:
         kafka1:
           type: kafka

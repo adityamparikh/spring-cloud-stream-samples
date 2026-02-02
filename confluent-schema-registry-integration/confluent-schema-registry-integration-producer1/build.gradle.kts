@@ -1,5 +1,14 @@
 plugins {
     alias(libs.plugins.spring.boot)
+    alias(libs.plugins.avro.gradle)
+}
+
+avro {
+    setStringType("String")
+}
+
+tasks.named<com.github.davidmc24.gradle.plugin.avro.GenerateAvroJavaTask>("generateAvroJava") {
+    source("src/main/resources/avro")
 }
 
 dependencies {
