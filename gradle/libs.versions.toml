@@ -1,0 +1,105 @@
+[versions]
+spring-boot = "4.0.0"
+spring-dependency-management = "1.1.7"
+kotlin = "2.2.0"
+spring-cloud = "2025.1.0"
+avro = "1.12.0"
+confluent = "7.9.0"
+jib = "2.0.0"
+spring-cloud-fn = "1.0.0-SNAPSHOT"
+spring-cloud-fn-config = "1.0.0-RC1"
+spring-cloud-stream-apps-support = "3.0.0"
+spring-cloud-stream-apps-composite = "3.0.0-SNAPSHOT"
+kinesis-binder = "2.2.0"
+
+[libraries]
+# Spring Boot starters (version managed by plugin)
+spring-boot-starter = { group = "org.springframework.boot", name = "spring-boot-starter" }
+spring-boot-starter-actuator = { group = "org.springframework.boot", name = "spring-boot-starter-actuator" }
+spring-boot-starter-webmvc = { group = "org.springframework.boot", name = "spring-boot-starter-webmvc" }
+spring-boot-starter-webflux = { group = "org.springframework.boot", name = "spring-boot-starter-webflux" }
+spring-boot-starter-security = { group = "org.springframework.boot", name = "spring-boot-starter-security" }
+spring-boot-starter-data-jpa = { group = "org.springframework.boot", name = "spring-boot-starter-data-jpa" }
+spring-boot-starter-data-rest = { group = "org.springframework.boot", name = "spring-boot-starter-data-rest" }
+spring-boot-starter-thymeleaf = { group = "org.springframework.boot", name = "spring-boot-starter-thymeleaf" }
+spring-boot-starter-test = { group = "org.springframework.boot", name = "spring-boot-starter-test" }
+spring-boot-devtools = { group = "org.springframework.boot", name = "spring-boot-devtools" }
+spring-boot-configuration-processor = { group = "org.springframework.boot", name = "spring-boot-configuration-processor" }
+spring-boot-jackson2 = { group = "org.springframework.boot", name = "spring-boot-jackson2" }
+
+# Spring Cloud BOM
+spring-cloud-dependencies = { group = "org.springframework.cloud", name = "spring-cloud-dependencies", version.ref = "spring-cloud" }
+
+# Spring Cloud Stream
+spring-cloud-stream = { group = "org.springframework.cloud", name = "spring-cloud-stream" }
+spring-cloud-stream-binder-kafka = { group = "org.springframework.cloud", name = "spring-cloud-stream-binder-kafka" }
+spring-cloud-stream-binder-kafka-streams = { group = "org.springframework.cloud", name = "spring-cloud-stream-binder-kafka-streams" }
+spring-cloud-stream-binder-rabbit = { group = "org.springframework.cloud", name = "spring-cloud-stream-binder-rabbit" }
+spring-cloud-stream-binder-kinesis = { group = "org.springframework.cloud", name = "spring-cloud-stream-binder-kinesis", version.ref = "kinesis-binder" }
+spring-cloud-stream-test-support = { group = "org.springframework.cloud", name = "spring-cloud-stream-test-support" }
+spring-cloud-stream-test-binder = { group = "org.springframework.cloud", name = "spring-cloud-stream-test-binder" }
+spring-cloud-stream-schema-registry-client = { group = "org.springframework.cloud", name = "spring-cloud-stream-schema-registry-client" }
+spring-cloud-starter-stream-kafka = { group = "org.springframework.cloud", name = "spring-cloud-starter-stream-kafka" }
+spring-cloud-function-context = { group = "org.springframework.cloud", name = "spring-cloud-function-context" }
+
+# Spring Cloud Functions
+spring-cloud-fn-http-request = { group = "org.springframework.cloud.fn", name = "http-request-function", version.ref = "spring-cloud-fn" }
+spring-cloud-fn-file-consumer = { group = "org.springframework.cloud.fn", name = "file-consumer", version.ref = "spring-cloud-fn" }
+spring-cloud-fn-config-common = { group = "org.springframework.cloud.fn", name = "config-common", version.ref = "spring-cloud-fn-config" }
+spring-cloud-stream-apps-composite-function-support = { group = "org.springframework.cloud.stream.app", name = "stream-applications-composite-function-support", version.ref = "spring-cloud-stream-apps-composite" }
+spring-cloud-stream-apps-test-support = { group = "org.springframework.cloud.stream.app", name = "stream-applications-test-support", version.ref = "spring-cloud-stream-apps-support" }
+
+# Spring Integration
+spring-integration-jdbc = { group = "org.springframework.integration", name = "spring-integration-jdbc" }
+spring-integration-test = { group = "org.springframework.integration", name = "spring-integration-test" }
+
+# Spring Kafka
+spring-kafka = { group = "org.springframework.kafka", name = "spring-kafka" }
+spring-kafka-test = { group = "org.springframework.kafka", name = "spring-kafka-test" }
+
+# Kafka
+kafka-streams = { group = "org.apache.kafka", name = "kafka-streams" }
+kafka-streams-test-utils = { group = "org.apache.kafka", name = "kafka-streams-test-utils" }
+
+# Avro / Confluent
+avro = { group = "org.apache.avro", name = "avro", version.ref = "avro" }
+confluent-kafka-avro-serializer = { group = "io.confluent", name = "kafka-avro-serializer", version.ref = "confluent" }
+confluent-kafka-schema-registry-client = { group = "io.confluent", name = "kafka-schema-registry-client", version.ref = "confluent" }
+confluent-kafka-streams-avro-serde = { group = "io.confluent", name = "kafka-streams-avro-serde", version.ref = "confluent" }
+
+# Kotlin
+kotlin-reflect = { group = "org.jetbrains.kotlin", name = "kotlin-reflect" }
+kotlin-stdlib = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib" }
+jackson-module-kotlin = { group = "com.fasterxml.jackson.module", name = "jackson-module-kotlin" }
+
+# Micrometer / Observability
+micrometer-registry-prometheus = { group = "io.micrometer", name = "micrometer-registry-prometheus" }
+
+# Databases
+h2 = { group = "com.h2database", name = "h2" }
+hsqldb = { group = "org.hsqldb", name = "hsqldb" }
+mariadb-java-client = { group = "org.mariadb.jdbc", name = "mariadb-java-client" }
+couchbase-java-client = { group = "com.couchbase.client", name = "java-client" }
+
+# Testcontainers 2.x (Boot-managed)
+testcontainers-couchbase = { group = "org.testcontainers", name = "testcontainers-couchbase" }
+testcontainers-kafka = { group = "org.testcontainers", name = "testcontainers-kafka" }
+testcontainers-junit-jupiter = { group = "org.testcontainers", name = "testcontainers-junit-jupiter" }
+
+# Test
+assertj-core = { group = "org.assertj", name = "assertj-core", version = "3.27.3" }
+junit-jupiter = { group = "org.junit.jupiter", name = "junit-jupiter", version = "5.11.4" }
+awaitility = { group = "org.awaitility", name = "awaitility" }
+reactor-test = { group = "io.projectreactor", name = "reactor-test" }
+lombok = { group = "org.projectlombok", name = "lombok" }
+
+# Spring Framework
+spring-core = { group = "org.springframework", name = "spring-core" }
+
+[plugins]
+spring-boot = { id = "org.springframework.boot", version.ref = "spring-boot" }
+spring-dependency-management = { id = "io.spring.dependency-management", version.ref = "spring-dependency-management" }
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlin-spring = { id = "org.jetbrains.kotlin.plugin.spring", version.ref = "kotlin" }
+avro-gradle = { id = "com.github.davidmc24.gradle.plugin.avro", version = "1.9.1" }
+jib = { id = "com.google.cloud.tools.jib", version.ref = "jib" }

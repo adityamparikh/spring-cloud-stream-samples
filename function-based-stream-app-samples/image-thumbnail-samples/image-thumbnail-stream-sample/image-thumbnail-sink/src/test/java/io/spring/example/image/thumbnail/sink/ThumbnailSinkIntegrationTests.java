@@ -51,9 +51,9 @@ public class ThumbnailSinkIntegrationTests {
 				.run(context -> {
 					InputDestination inputDestination = context.getBean(InputDestination.class);
 					inputDestination.send(MessageBuilder.withPayload(data).build());
+					await().timeout(Duration.ofSeconds(10))
+							.until(() -> Files.exists(Paths.get(tempDir.getAbsolutePath(), "thumbnail-1.jpg")));
 				});
-		await().timeout(Duration.ofSeconds(10))
-				.until(() -> Files.exists(Paths.get(tempDir.getAbsolutePath(), "thumbnail-1.jpg")));
 	}
 
 	private byte[] readAllBytes(Resource resource) throws IOException {
