@@ -6,5 +6,5 @@ dependencies {
     implementation(platform(libs.spring.cloud.dependencies))
     implementation(libs.spring.cloud.stream.binder.kafka)
     testImplementation(libs.spring.kafka.test)
-    testImplementation(libs.junit.vintage.engine)
+
 }

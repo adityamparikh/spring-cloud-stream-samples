@@ -7,8 +7,6 @@ dependencies {
     implementation(platform(libs.spring.cloud.dependencies))
     implementation(libs.spring.cloud.stream.binder.kafka.streams)
     implementation(libs.micrometer.registry.prometheus)
-    implementation(libs.micrometer.registry.wavefront)
     testImplementation(libs.spring.kafka.test)
     testImplementation(libs.kafka.streams.test.utils)
-    testImplementation(libs.junit.vintage.engine)
 }
