@@ -24,7 +24,6 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.integration.dsl.IntegrationFlow;
-import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.jdbc.JdbcMessageHandler;
 import org.springframework.messaging.MessageHandler;
 
@@ -40,7 +39,7 @@ public class JdbcSink {
 
 	@Bean
 	public IntegrationFlow jdbcConsumerFlow() {
-		return IntegrationFlows.from(Consumer.class, (gateway) -> gateway.beanName("jdbcConsumer"))
+		return IntegrationFlow.from(Consumer.class, (gateway) -> gateway.beanName("jdbcConsumer"))
 				.handle(jdbcHandler(null))
 				.get();
 	}

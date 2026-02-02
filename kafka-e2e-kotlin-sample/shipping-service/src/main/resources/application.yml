@@ -3,6 +3,8 @@ spring:
     name: shipping-service
   cloud:
     stream:
+      function:
+        definition: process
       kafka:
         streams:
           binder:
@@ -17,21 +19,21 @@ spring:
                   name:
                     strategy: io.confluent.kafka.serializers.subject.RecordNameStrategy
           bindings:
-            input:
+            process-in-0:
               consumer:
                 valueSerde: io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde
-            order:
+            process-in-1:
               consumer:
                 valueSerde: io.confluent.kafka.streams.serdes.avro.GenericAvroSerde
-            output:
+            process-out-0:
               producer:
                 valueSerde: io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde
       bindings:
-        input:
+        process-in-0:
           destination: customer
-        order:
+        process-in-1:
           destination: order
-        output:
+        process-out-0:
           destination: order
 
 server:

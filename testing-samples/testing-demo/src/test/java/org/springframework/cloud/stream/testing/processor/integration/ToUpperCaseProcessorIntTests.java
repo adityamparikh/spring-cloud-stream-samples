@@ -27,11 +27,10 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration;
-import org.springframework.boot.autoconfigure.transaction.TransactionAutoConfiguration;
+import org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration;
+import org.springframework.boot.jdbc.autoconfigure.DataSourceTransactionManagerAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.stream.test.binder.TestSupportBinderAutoConfiguration;
+import org.springframework.boot.transaction.autoconfigure.TransactionAutoConfiguration;
 import org.springframework.cloud.stream.testing.processor.ToUpperCaseProcessor;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -58,7 +57,6 @@ import org.springframework.test.annotation.DirtiesContext;
 		classes = ToUpperCaseProcessor.class,
 		webEnvironment = SpringBootTest.WebEnvironment.NONE)
 @ImportAutoConfiguration(exclude = {
-		TestSupportBinderAutoConfiguration.class,
 		DataSourceAutoConfiguration.class,
 		TransactionAutoConfiguration.class,
 		DataSourceTransactionManagerAutoConfiguration.class })

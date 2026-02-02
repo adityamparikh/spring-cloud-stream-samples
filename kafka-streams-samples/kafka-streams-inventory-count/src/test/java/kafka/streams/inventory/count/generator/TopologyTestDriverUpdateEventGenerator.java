@@ -15,14 +15,11 @@
  */
 package kafka.streams.inventory.count.generator;
 
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import kafka.streams.inventory.count.InventoryUpdateEvent;
 import kafka.streams.inventory.count.ProductKey;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.serialization.Serializer;
+import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TopologyTestDriver;
-import org.apache.kafka.streams.test.ConsumerRecordFactory;
 
 /**
  * Test data generator using {@link InventoryUpdateEvent}s using {@link TopologyTestDriver} to send events.
@@ -32,21 +29,17 @@ import org.apache.kafka.streams.test.ConsumerRecordFactory;
  */
 public class TopologyTestDriverUpdateEventGenerator extends AbstractInventoryUpdateEventGenerator {
 
-    private final TopologyTestDriver topologyTestDriver;
-    private final ConsumerRecordFactory<ProductKey, InventoryUpdateEvent> recordFactory;
+    private final TestInputTopic<ProductKey, InventoryUpdateEvent> inputTopic;
 
     public TopologyTestDriverUpdateEventGenerator(TopologyTestDriver topologyTestDriver,
-                                                  String inputTopic,
+                                                  String inputTopicName,
                                                   Serializer<ProductKey> keySerializer,
                                                   Serializer<InventoryUpdateEvent> valueSerializer) {
-        this.topologyTestDriver = topologyTestDriver;
-        this.recordFactory = new ConsumerRecordFactory<>(
-                 inputTopic, keySerializer, valueSerializer);
+        this.inputTopic = topologyTestDriver.createInputTopic(inputTopicName, keySerializer, valueSerializer);
     }
 
     @Override
     protected void doSendEvent(ProductKey key, InventoryUpdateEvent value) {
-        ConsumerRecord<byte[], byte[]> record = recordFactory.create(key, value, LocalDateTime.now().toEpochSecond(ZoneOffset.UTC));
-        topologyTestDriver.pipeInput(record);
+        inputTopic.pipeInput(key, value);
     }
 }

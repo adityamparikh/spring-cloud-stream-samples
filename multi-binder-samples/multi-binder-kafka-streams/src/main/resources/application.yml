@@ -1,8 +1,8 @@
 spring:
   cloud:
+    function:
+      definition: sendTestData;process;receive;concatFn
     stream:
-      function:
-        definition: sendTestData;process;receive;concatFn
       bindings:
         process-in-0:
           destination: dataIn

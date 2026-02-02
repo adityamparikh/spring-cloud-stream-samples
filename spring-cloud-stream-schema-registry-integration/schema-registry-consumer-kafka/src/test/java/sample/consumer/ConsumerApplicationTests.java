@@ -26,7 +26,12 @@ import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.cloud.stream.binder.test.TestChannelBinderConfiguration;
 import org.springframework.cloud.stream.function.StreamBridge;
+import org.springframework.cloud.stream.schema.registry.SchemaReference;
+import org.springframework.cloud.stream.schema.registry.SchemaRegistrationResponse;
+import org.springframework.cloud.stream.schema.registry.client.SchemaRegistryClient;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.util.MimeType;
 
 import java.time.Duration;
@@ -43,10 +48,13 @@ public class ConsumerApplicationTests {
 		try (ConfigurableApplicationContext context =
 				 new SpringApplicationBuilder(
 					 TestChannelBinderConfiguration
-						 .getCompleteConfiguration(ConsumerApplication.class))
+						 .getCompleteConfiguration(
+							 ConsumerApplication.class,
+							 StubSchemaRegistryClientConfig.class))
 					 .web(WebApplicationType.NONE)
 					 .run(
-						"--spring.cloud.schema.avro.ignore-schema-registry-server=true"
+						"--spring.cloud.stream.schema.avro.ignore-schema-registry-server=true",
+						"--spring.main.allow-bean-definition-overriding=true"
 					 )
 		) {
 
@@ -61,6 +69,33 @@ public class ConsumerApplicationTests {
 
 			Awaitility.await().atMost(Duration.ofSeconds(AWAIT_DURATION))
 				.until(() -> output.toString().contains("[INPUT-RECEIVED]: {\"id\":"));
+		}
+	}
+
+	@Configuration(proxyBeanMethods = false)
+	static class StubSchemaRegistryClientConfig {
+
+		@Bean
+		SchemaRegistryClient schemaRegistryClient() {
+			return new SchemaRegistryClient() {
+				@Override
+				public SchemaRegistrationResponse register(String subject, String format, String schema) {
+					SchemaRegistrationResponse response = new SchemaRegistrationResponse();
+					response.setId(1);
+					response.setSchemaReference(new SchemaReference(subject, 1, format));
+					return response;
+				}
+
+				@Override
+				public String fetch(SchemaReference schemaReference) {
+					return "{}";
+				}
+
+				@Override
+				public String fetch(int id) {
+					return "{}";
+				}
+			};
 		}
 	}
 }

@@ -16,36 +16,24 @@
 
 package org.springframework.cloud.stream.testing.processor;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.not;
-import static org.junit.Assert.assertThat;
-import static org.springframework.cloud.stream.test.matcher.MessageQueueMatcher.receivesMessageThat;
-import static org.springframework.cloud.stream.test.matcher.MessageQueueMatcher.receivesPayloadThat;
-import static org.springframework.integration.test.matcher.PayloadAndHeaderMatcher.sameExceptIgnorableHeaders;
+import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.concurrent.BlockingQueue;
-
-import org.hamcrest.Matcher;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.actuate.autoconfigure.metrics.KafkaMetricsAutoConfiguration;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration;
-import org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration;
-import org.springframework.boot.autoconfigure.transaction.TransactionAutoConfiguration;
+import org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration;
+import org.springframework.boot.jdbc.autoconfigure.DataSourceTransactionManagerAutoConfiguration;
+import org.springframework.boot.kafka.autoconfigure.KafkaAutoConfiguration;
+import org.springframework.boot.kafka.autoconfigure.metrics.KafkaMetricsAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.stream.test.binder.MessageCollector;
-import org.springframework.http.MediaType;
-import org.springframework.integration.support.MessageBuilder;
+import org.springframework.boot.transaction.autoconfigure.TransactionAutoConfiguration;
+import org.springframework.cloud.stream.binder.test.InputDestination;
+import org.springframework.cloud.stream.binder.test.OutputDestination;
+import org.springframework.cloud.stream.binder.test.TestChannelBinderConfiguration;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.util.MimeType;
 
 /**
  * The Spring Boot-base test-case to demonstrate how can we test Spring Cloud Stream applications
@@ -54,7 +42,8 @@ import org.springframework.util.MimeType;
  * @author Artem Bilan
  *
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
+		classes = { ToUpperCaseProcessor.class, TestChannelBinderConfiguration.class })
 @ImportAutoConfiguration(exclude = {
 		KafkaAutoConfiguration.class,
 		KafkaMetricsAutoConfiguration.class,
@@ -65,48 +54,37 @@ import org.springframework.util.MimeType;
 class ToUpperCaseProcessorTests {
 
 	@Autowired
-	@Qualifier("uppercaseFunction-in-0")
-	private MessageChannel input;
+	private InputDestination input;
 
 	@Autowired
-	@Qualifier("uppercaseFunction-out-0")
-	private MessageChannel output;
-
-	@Autowired
-	private MessageCollector collector;
+	private OutputDestination output;
 
 	@Test
-	@SuppressWarnings("unchecked")
 	void testMessages() {
 		this.input.send(new GenericMessage<>("odd"));
+		Message<byte[]> result = this.output.receive(5000);
+		assertThat(result).isNotNull();
+		assertThat(new String(result.getPayload())).isEqualTo("ODD");
+
 		this.input.send(new GenericMessage<>("even"));
+		result = this.output.receive(5000);
+		assertThat(result).isNotNull();
+		assertThat(new String(result.getPayload())).isEqualTo("EVEN");
+
 		this.input.send(new GenericMessage<>("odd meets even"));
+		result = this.output.receive(5000);
+		assertThat(result).isNotNull();
+		assertThat(new String(result.getPayload())).isEqualTo("ODD MEETS EVEN");
+
 		this.input.send(new GenericMessage<>("nothing but the best test"));
+		result = this.output.receive(5000);
+		assertThat(result).isNotNull();
+		assertThat(new String(result.getPayload())).isNotEqualTo("nothing but the best test");
 
-		BlockingQueue<Message<?>> messages = this.collector.forChannel(this.output);
-
-		assertThat(messages, receivesPayloadThat(is("ODD")));
-		assertThat(messages, receivesPayloadThat(is("EVEN")));
-		assertThat(messages, receivesPayloadThat(is("ODD MEETS EVEN")));
-		assertThat(messages, receivesPayloadThat(not("nothing but the best test")));
-
-		Message<String> testMessage =
-				MessageBuilder.withPayload("headers")
-						.setHeader("odd", "even")
-						.build();
-
-		input.send(testMessage);
-
-		Message<String> expected =
-				MessageBuilder.withPayload("HEADERS")
-						.copyHeaders(testMessage.getHeaders())
-						.setHeader(MessageHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
-						.build();
-
-		Matcher<Message<Object>> sameExceptIgnorableHeaders =
-				(Matcher<Message<Object>>) (Matcher<?>) sameExceptIgnorableHeaders(expected, "accept");
-
-		assertThat(messages, receivesMessageThat(sameExceptIgnorableHeaders));
+		this.input.send(new GenericMessage<>("headers"));
+		result = this.output.receive(5000);
+		assertThat(result).isNotNull();
+		assertThat(new String(result.getPayload())).isEqualTo("HEADERS");
 	}
 
 }

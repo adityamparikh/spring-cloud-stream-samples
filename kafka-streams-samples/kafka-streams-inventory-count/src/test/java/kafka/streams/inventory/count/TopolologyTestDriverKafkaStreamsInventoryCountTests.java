@@ -21,11 +21,12 @@ import java.util.Map;
 import java.util.Properties;
 import kafka.streams.inventory.count.KafkaStreamsInventoryCountApplication.KafkaStreamsInventoryAggregator;
 import kafka.streams.inventory.count.generator.TopologyTestDriverUpdateEventGenerator;
-import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serde;
+import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.StreamsConfig;
+import org.apache.kafka.streams.TestOutputTopic;
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.TopologyTestDriver;
 import org.apache.kafka.streams.kstream.Consumed;
@@ -56,6 +57,7 @@ public class TopolologyTestDriverKafkaStreamsInventoryCountTests extends Abstrac
     private Serde<ProductKey> keySerde = new JsonSerde<>(ProductKey.class);
 
     private TopologyTestDriver testDriver;
+    private TestOutputTopic<ProductKey, InventoryCountEvent> outputTopic;
 
     static Properties getStreamsConfiguration() {
         final Properties streamsConfiguration = new Properties();
@@ -90,6 +92,7 @@ public class TopolologyTestDriverKafkaStreamsInventoryCountTests extends Abstrac
 
         logger.debug(topology.describe().toString());
 
+        outputTopic = testDriver.createOutputTopic(OUTPUT_TOPIC, keySerde.deserializer(), countEventSerde.deserializer());
 
         setEventGenerator(new TopologyTestDriverUpdateEventGenerator(testDriver, INPUT_TOPIC, keySerde.serializer(),
                 updateEventSerde.serializer()));
@@ -112,14 +115,13 @@ public class TopolologyTestDriverKafkaStreamsInventoryCountTests extends Abstrac
         Map<ProductKey, InventoryCountEvent> inventoryCountEvents = new LinkedHashMap<>();
         int receivedCount = 0;
         while (receivedCount < expectedCount) {
-            ProducerRecord<ProductKey, InventoryCountEvent> record
-                    = testDriver.readOutput(OUTPUT_TOPIC, keySerde.deserializer(), countEventSerde.deserializer());
-            if (record == null) {
+            if (outputTopic.isEmpty()) {
                 break;
             }
+            KeyValue<ProductKey, InventoryCountEvent> record = outputTopic.readKeyValue();
             receivedCount++;
-            logger.debug("consumed " + record.key().getProductCode() + " = " + record.value().getCount());
-            inventoryCountEvents.put(record.key(), record.value());
+            logger.debug("consumed " + record.key.getProductCode() + " = " + record.value.getCount());
+            inventoryCountEvents.put(record.key, record.value);
         }
         return inventoryCountEvents;
     }

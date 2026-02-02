@@ -18,7 +18,6 @@ package kafka.streams.table.join;
 
 import java.util.function.Consumer;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.utils.Bytes;
@@ -52,8 +51,7 @@ public class KafkaStreamsAggregateSample {
 		@Bean
 		public Consumer<KStream<String, DomainEvent>> aggregate() {
 
-			ObjectMapper mapper = new ObjectMapper();
-			Serde<DomainEvent> domainEventSerde = new JsonSerde<>( DomainEvent.class, mapper );
+			Serde<DomainEvent> domainEventSerde = new JsonSerde<>(DomainEvent.class);
 
 			return input -> input
 					.groupBy(

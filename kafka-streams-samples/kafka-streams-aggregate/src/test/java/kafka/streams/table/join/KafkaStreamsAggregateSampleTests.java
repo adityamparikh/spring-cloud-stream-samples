@@ -1,43 +1,39 @@
 package kafka.streams.table.join;
 
+import java.time.Duration;
 import java.util.Map;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.StringSerializer;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.apache.kafka.streams.KafkaStreams;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.config.StreamsBuilderFactoryBean;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.serializer.JsonSerde;
 import org.springframework.kafka.test.EmbeddedKafkaBroker;
-import org.springframework.kafka.test.rule.EmbeddedKafkaRule;
+import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.client.RestTemplate;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 
-@RunWith(SpringRunner.class)
+@EmbeddedKafka(topics = "foobar", count = 1,
+		bootstrapServersProperty = "spring.cloud.stream.kafka.streams.binder.brokers")
 @SpringBootTest(
 		webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class KafkaStreamsAggregateSampleTests {
 
-	@ClassRule
-	public static EmbeddedKafkaRule embeddedKafkaRule = new EmbeddedKafkaRule(1, true, "foobar");
-
-	private static EmbeddedKafkaBroker embeddedKafka = embeddedKafkaRule.getEmbeddedKafka();
+	@Autowired
+	EmbeddedKafkaBroker embeddedKafka;
 
 	@Autowired
 	StreamsBuilderFactoryBean streamsBuilderFactoryBean;
@@ -45,33 +41,21 @@ public class KafkaStreamsAggregateSampleTests {
 	@LocalServerPort
 	int randomServerPort;
 
-	@Before
+	@BeforeEach
 	public void before() {
 		streamsBuilderFactoryBean.setCloseTimeout(0);
-	}
-
-	@BeforeClass
-	public static void setUp() {
-		System.setProperty("spring.cloud.stream.kafka.streams.binder.brokers", embeddedKafka.getBrokersAsString());
-	}
-
-	@AfterClass
-	public static void tearDown() {
-		System.clearProperty("spring.cloud.stream.kafka.streams.binder.brokers");
 	}
 
 	@Test
 	public void testKafkaStreamsWordCountProcessor() throws Exception {
 		Map<String, Object> senderProps = KafkaTestUtils.producerProps(embeddedKafka);
-		ObjectMapper mapper = new ObjectMapper();
-		Serde<DomainEvent> domainEventSerde = new JsonSerde<>(DomainEvent.class, mapper);
+		Serde<DomainEvent> domainEventSerde = new JsonSerde<>(DomainEvent.class);
 
 		senderProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
 		senderProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, domainEventSerde.serializer().getClass());
 
 		DefaultKafkaProducerFactory<String, DomainEvent> pf = new DefaultKafkaProducerFactory<>(senderProps);
 		try {
-
 
 			KafkaTemplate<String, DomainEvent> template = new KafkaTemplate<>(pf, true);
 			template.setDefaultTopic("foobar");
@@ -81,13 +65,23 @@ public class KafkaStreamsAggregateSampleTests {
 			ddEvent.setEventType("create-domain-event");
 
 			template.sendDefault("", ddEvent);
- 			Thread.sleep(1000);
+
+			// Wait for Kafka Streams to reach RUNNING state before querying the state store
+			await().atMost(Duration.ofSeconds(30)).pollInterval(Duration.ofMillis(500)).until(() -> {
+				KafkaStreams kafkaStreams = streamsBuilderFactoryBean.getKafkaStreams();
+				return kafkaStreams != null && kafkaStreams.state() == KafkaStreams.State.RUNNING;
+			});
+
 			RestTemplate restTemplate = new RestTemplate();
 			String fooResourceUrl
 					= "http://localhost:" + randomServerPort + "/events";
-			ResponseEntity<String> response
-					= restTemplate.getForEntity(fooResourceUrl, String.class);
-			assertThat(response.getBody()).contains("create-domain-event");
+
+			// Poll for the result since the state store may need time to process the record
+			await().atMost(Duration.ofSeconds(30)).pollInterval(Duration.ofMillis(500)).untilAsserted(() -> {
+				ResponseEntity<String> response
+						= restTemplate.getForEntity(fooResourceUrl, String.class);
+				assertThat(response.getBody()).contains("create-domain-event");
+			});
 		}
 		finally {
 			pf.destroy();

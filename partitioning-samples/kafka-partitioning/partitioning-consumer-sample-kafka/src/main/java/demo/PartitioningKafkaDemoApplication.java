@@ -38,6 +38,6 @@ public class PartitioningKafkaDemoApplication {
 	@Bean
 	public Consumer<Message<String>> listen() {
 		return message -> logger.info(message.getPayload() + " received from partition "
-						+ message.getHeaders().get(KafkaHeaders.RECEIVED_PARTITION_ID));
+						+ message.getHeaders().get(KafkaHeaders.RECEIVED_PARTITION));
 	}
 }

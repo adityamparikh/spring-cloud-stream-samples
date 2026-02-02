@@ -16,7 +16,6 @@
 
 package kafka.streams.table.join;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.StringSerializer;
@@ -34,8 +33,7 @@ public class Producers {
 
 	public static void main(String... args) {
 
-		ObjectMapper mapper = new ObjectMapper();
-		Serde<DomainEvent> domainEventSerde = new JsonSerde<>(DomainEvent.class, mapper);
+		Serde<DomainEvent> domainEventSerde = new JsonSerde<>(DomainEvent.class);
 
 
 		Map<String, Object> props = new HashMap<>();

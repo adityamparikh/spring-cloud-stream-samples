@@ -28,9 +28,9 @@ import org.apache.kafka.streams.TopologyTestDriver;
 import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Produced;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.kafka.support.serializer.JsonSerde;
 
 import java.time.Duration;
@@ -73,7 +73,7 @@ public class WordCountProcessorApplicationTests {
      * Add KStream based on @StreamListener annotation
      * Add to(topic) based @SendTo annotation
      */
-    @Before
+    @BeforeEach
     public void setup() {
         final StreamsBuilder builder = new StreamsBuilder();
         buildStreamProcessingPipeline(builder);
@@ -91,7 +91,7 @@ public class WordCountProcessorApplicationTests {
         output.to(OUTPUT_TOPIC, Produced.with(nullSerde, countSerde));
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         try {
             testDriver.close();

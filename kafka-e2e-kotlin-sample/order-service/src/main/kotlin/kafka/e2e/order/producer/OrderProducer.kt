@@ -18,20 +18,21 @@ package kafka.e2e.order.producer
 
 import kafka.e2e.order.OrderCreatedEvent
 import kafka.e2e.order.dto.Order
-import org.springframework.cloud.stream.messaging.Source
+import org.springframework.cloud.stream.function.StreamBridge
 import org.springframework.kafka.support.KafkaHeaders
 import org.springframework.messaging.support.MessageBuilder
 import org.springframework.stereotype.Component
 
 /**
- * @author José A. Íñigo
+ * @author Jose A. Inigo
  */
 @Component
-class OrderProducer(private val source: Source) {
+class OrderProducer(private val streamBridge: StreamBridge) {
 
     fun publishOrderCreatedEvent(order: Order) {
-        source.output().send(MessageBuilder.withPayload(OrderCreatedEvent(order.id, order.productId, order.customerId))
-                .setHeader(KafkaHeaders.MESSAGE_KEY, order.id).build())
+        val message = MessageBuilder.withPayload(OrderCreatedEvent(order.id, order.productId, order.customerId))
+                .setHeader(KafkaHeaders.KEY, order.id).build()
+        streamBridge.send("output", message)
     }
 
 }

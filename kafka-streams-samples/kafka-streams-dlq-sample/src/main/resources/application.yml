@@ -4,7 +4,7 @@ spring.cloud.stream.kafka.streams.binder:
     default.key.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
     default.value.serde: org.apache.kafka.common.serialization.Serdes$IntegerSerde
     application.id: dlq-demo-sample
-  serdeError: sendToDlq
+  deserializationExceptionHandler: sendToDlq
 spring.cloud.stream.bindings.process-out-0:
   destination: counts
 spring.cloud.stream.bindings.process-in-0:

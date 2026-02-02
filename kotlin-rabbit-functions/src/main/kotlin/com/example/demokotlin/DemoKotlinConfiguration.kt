@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Configuration
 open class DemoKotlinConfiguration {
 	@Bean
 	open fun uppercase(): (String) -> String {
-		return { it.toUpperCase() }
+		return { it.uppercase() }
 	}
 	
 	@Bean

@@ -19,12 +19,14 @@ package kafka.streams.branching;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.Map;
 import java.util.function.Function;
 
 import org.apache.kafka.streams.KeyValue;
+import org.apache.kafka.streams.kstream.Branched;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Materialized;
-import org.apache.kafka.streams.kstream.Predicate;
+import org.apache.kafka.streams.kstream.Named;
 import org.apache.kafka.streams.kstream.TimeWindows;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -43,19 +45,29 @@ public class KafkaStreamsBranchingSample {
 		@SuppressWarnings("unchecked")
 		public Function<KStream<Object, String>, KStream<?, WordCount>[]> process() {
 
-			Predicate<Object, WordCount> isEnglish = (k, v) -> v.word.equals("english");
-			Predicate<Object, WordCount> isFrench =  (k, v) -> v.word.equals("french");
-			Predicate<Object, WordCount> isSpanish = (k, v) -> v.word.equals("spanish");
+			return input -> {
+				KStream<Object, WordCount> wordCounts = input
+						.flatMapValues(value -> Arrays.asList(value.toLowerCase().split("\\W+")))
+						.groupBy((key, value) -> value)
+						.windowedBy(TimeWindows.ofSizeWithNoGrace(Duration.ofSeconds(6)))
+						.count(Materialized.as("WordCounts-1"))
+						.toStream()
+						.map((key, value) -> new KeyValue<>(null,
+								new WordCount(key.key(), value, new Date(key.window().start()), new Date(key.window().end()))));
 
-			return input -> input
-					.flatMapValues(value -> Arrays.asList(value.toLowerCase().split("\\W+")))
-					.groupBy((key, value) -> value)
-					.windowedBy(TimeWindows.of(Duration.ofSeconds(6)))
-					.count(Materialized.as("WordCounts-1"))
-					.toStream()
-					.map((key, value) -> new KeyValue<>(null,
-							new WordCount(key.key(), value, new Date(key.window().start()), new Date(key.window().end()))))
-					.branch(isEnglish, isFrench, isSpanish);
+				Map<String, KStream<Object, WordCount>> branches = wordCounts
+						.split(Named.as("branch-"))
+						.branch((k, v) -> v.word.equals("english"), Branched.as("english"))
+						.branch((k, v) -> v.word.equals("french"), Branched.as("french"))
+						.branch((k, v) -> v.word.equals("spanish"), Branched.as("spanish"))
+						.noDefaultBranch();
+
+				return new KStream[]{
+						branches.get("branch-english"),
+						branches.get("branch-french"),
+						branches.get("branch-spanish")
+				};
+			};
 		}
 	}
 

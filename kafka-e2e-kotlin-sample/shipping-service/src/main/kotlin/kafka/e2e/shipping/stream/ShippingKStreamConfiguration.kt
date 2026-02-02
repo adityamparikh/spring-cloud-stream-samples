@@ -27,46 +27,46 @@ import org.apache.kafka.common.utils.Bytes
 import org.apache.kafka.streams.KeyValue
 import org.apache.kafka.streams.kstream.*
 import org.apache.kafka.streams.state.KeyValueStore
-import org.springframework.cloud.stream.annotation.Input
-import org.springframework.cloud.stream.annotation.StreamListener
+import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.messaging.handler.annotation.SendTo
+import java.util.function.BiFunction
 
 /**
- * @author José A. Íñigo
+ * @author Jose A. Inigo
  */
 @Suppress("UNCHECKED_CAST")
 @Configuration
 class ShippingKStreamConfiguration {
 
-    @StreamListener
-    @SendTo("output")
-    fun process(@Input("input") input: KStream<Int, Customer>, @Input("order") orderEvent: KStream<Int, GenericRecord>): KStream<Int, OrderShippedEvent> {
+    @Bean
+    fun process(): BiFunction<KStream<Int, Customer>, KStream<Int, GenericRecord>, KStream<Int, OrderShippedEvent>> {
+        return BiFunction { input, orderEvent ->
 
-        val serdeConfig = mapOf(
-                AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG to "http://localhost:8081")
+            val serdeConfig = mapOf(
+                    AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG to "http://localhost:8081")
 
-        val intSerde = Serdes.IntegerSerde()
-        val customerSerde = SpecificAvroSerde<Customer>()
-        customerSerde.configure(serdeConfig, false)
-        val orderCreatedSerde = SpecificAvroSerde<OrderCreatedEvent>()
-        orderCreatedSerde.configure(serdeConfig, false)
-        val orderShippedSerde = SpecificAvroSerde<OrderShippedEvent>()
-        orderShippedSerde.configure(serdeConfig, false)
+            val intSerde = Serdes.IntegerSerde()
+            val customerSerde = SpecificAvroSerde<Customer>()
+            customerSerde.configure(serdeConfig, false)
+            val orderCreatedSerde = SpecificAvroSerde<OrderCreatedEvent>()
+            orderCreatedSerde.configure(serdeConfig, false)
+            val orderShippedSerde = SpecificAvroSerde<OrderShippedEvent>()
+            orderShippedSerde.configure(serdeConfig, false)
 
-        val stateStore: Materialized<Int, Customer, KeyValueStore<Bytes, ByteArray>> =
-                Materialized.`as`<Int, Customer, KeyValueStore<Bytes, ByteArray>>("customer-store")
+            val stateStore: Materialized<Int, Customer, KeyValueStore<Bytes, ByteArray>> =
+                    Materialized.`as`<Int, Customer, KeyValueStore<Bytes, ByteArray>>("customer-store")
 
-        val customerTable: KTable<Int, Customer> = input.groupByKey()
-                .reduce({ _, y -> y }, stateStore)
+            val customerTable: KTable<Int, Customer> = input.groupByKey()
+                    .reduce({ _, y -> y }, stateStore)
 
-        return (orderEvent.filter { _, value -> value.schema.name == "OrderCreatedEvent" }
-                .map { key, value -> KeyValue(key, OrderCreatedEvent(value.get("id") as Int, value.get("productId") as Int, value.get("customerId") as Int)) }
-                .selectKey { _, value -> value.customerId } as KStream<Int, OrderCreatedEvent>)
-                .join(customerTable, { orderIt, customer ->
-                    OrderShippedEvent(orderIt.id, orderIt.productId, customer.name, customer.address)
-                }, Joined.with(intSerde, orderCreatedSerde, customerSerde))
-                .selectKey { _, value -> value.id }
+            (orderEvent.filter { _, value -> value.schema.name == "OrderCreatedEvent" }
+                    .map { key, value -> KeyValue(key, OrderCreatedEvent(value.get("id") as Int, value.get("productId") as Int, value.get("customerId") as Int)) }
+                    .selectKey { _, value -> value.customerId } as KStream<Int, OrderCreatedEvent>)
+                    .join(customerTable, { orderIt, customer ->
+                        OrderShippedEvent(orderIt.id, orderIt.productId, customer.name, customer.address)
+                    }, Joined.with(intSerde, orderCreatedSerde, customerSerde))
+                    .selectKey { _, value -> value.id }
+        }
     }
 
 }

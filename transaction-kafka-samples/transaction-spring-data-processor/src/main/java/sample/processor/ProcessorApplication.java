@@ -19,7 +19,7 @@ import java.util.StringJoiner;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 
-import javax.transaction.Transactional;
+import jakarta.transaction.Transactional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -17,26 +17,21 @@
 package org.springframework.cloud.stream.testing.source;
 
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
-import static org.springframework.cloud.stream.test.matcher.MessageQueueMatcher.receivesPayloadThat;
-
-import java.util.concurrent.BlockingQueue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.actuate.autoconfigure.metrics.KafkaMetricsAutoConfiguration;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration;
-import org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration;
-import org.springframework.boot.autoconfigure.transaction.TransactionAutoConfiguration;
+import org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration;
+import org.springframework.boot.jdbc.autoconfigure.DataSourceTransactionManagerAutoConfiguration;
+import org.springframework.boot.kafka.autoconfigure.KafkaAutoConfiguration;
+import org.springframework.boot.kafka.autoconfigure.metrics.KafkaMetricsAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.stream.test.binder.MessageCollector;
+import org.springframework.boot.transaction.autoconfigure.TransactionAutoConfiguration;
+import org.springframework.cloud.stream.binder.test.OutputDestination;
+import org.springframework.cloud.stream.binder.test.TestChannelBinderConfiguration;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.test.annotation.DirtiesContext;
 
 /**
@@ -48,7 +43,8 @@ import org.springframework.test.annotation.DirtiesContext;
  */
 @SpringBootTest(
 		webEnvironment = SpringBootTest.WebEnvironment.NONE,
-		properties = "spring.cloud.stream.poller.fixed-delay=1")
+		properties = "spring.cloud.stream.poller.fixed-delay=1",
+		classes = { OddEvenSource.class, TestChannelBinderConfiguration.class })
 @ImportAutoConfiguration(exclude = {
 		KafkaAutoConfiguration.class,
 		KafkaMetricsAutoConfiguration.class,
@@ -59,20 +55,25 @@ import org.springframework.test.annotation.DirtiesContext;
 class OddEvenSourceTests {
 
 	@Autowired
-	@Qualifier("oddEvenSupplier-out-0")
-	MessageChannel outputDestination;
-
-	@Autowired
-	MessageCollector collector;
+	private OutputDestination output;
 
 	@Test
 	void testMessages() {
-		BlockingQueue<Message<?>> messages = this.collector.forChannel(this.outputDestination);
+		Message<byte[]> result = this.output.receive(5000);
+		assertThat(result).isNotNull();
+		assertThat(new String(result.getPayload())).isEqualTo("odd");
 
-		assertThat(messages, receivesPayloadThat(is("odd")));
-		assertThat(messages, receivesPayloadThat(is("even")));
-		assertThat(messages, receivesPayloadThat(is("odd")));
-		assertThat(messages, receivesPayloadThat(is("even")));
+		result = this.output.receive(5000);
+		assertThat(result).isNotNull();
+		assertThat(new String(result.getPayload())).isEqualTo("even");
+
+		result = this.output.receive(5000);
+		assertThat(result).isNotNull();
+		assertThat(new String(result.getPayload())).isEqualTo("odd");
+
+		result = this.output.receive(5000);
+		assertThat(result).isNotNull();
+		assertThat(new String(result.getPayload())).isEqualTo("even");
 	}
 
 }
